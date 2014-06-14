@@ -1,0 +1,68 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Tell dh-golang where this package lives upstream
+export DH_GOPKG := github.com/dotcloud/docker
+# Tell dh-golang that we DO need subpackages
+export DH_GOLANG_INSTALL_ALL := 1
+
+# temporary build path (see http://golang.org/doc/code.html#GOPATH)
+export GOPATH := $(CURDIR)/obj-$(DEB_BUILD_GNU_TYPE)
+
+# a few helpful variables for deduplication
+INITDIR = /usr/lib/docker.io
+INITPATH = ${INITDIR}/dockerinit
+DOCKER_VERSION = $(shell cat VERSION)
+
+export DOCKER_GITCOMMIT := $(shell awk '/^$(DOCKER_VERSION):/ { print $$2 }' debian/upstream-version-gitcommits)
+export DOCKER_INITPATH := ${INITPATH}
+
+# good old Ubuntu needs AppArmor
+export DOCKER_BUILDTAGS := apparmor
+
+
+override_dh_auto_build:
+	@bash -c '{ [ "$$DOCKER_GITCOMMIT" ]; } || { echo; echo "error: missing DOCKER_GITCOMMIT - see debian/upstream-version-gitcommits"; echo; exit 2; } >&2'
+	./hack/make.sh dynbinary
+
+
+override_dh_auto_install:
+	dh_auto_install
+	mkdir -p debian/docker.io/usr/bin
+	mv bundles/${DOCKER_VERSION}/dynbinary/docker-${DOCKER_VERSION} debian/docker.io/usr/bin/docker
+	ln -s docker debian/docker.io/usr/bin/docker.io
+	mkdir -p debian/docker.io/${INITDIR}
+	mv bundles/${DOCKER_VERSION}/dynbinary/dockerinit-${DOCKER_VERSION} debian/docker.io/${INITPATH}
+	# The source of docker does not make a library, so dont ship it.
+	rm -rf debian/docker.io/usr/share/gocode
+	# Manual install zsh completion file  because of the dh_install does not support rename file
+	mkdir -p debian/docker.io/usr/share/zsh/vendor-completions
+	install -D -m 644 contrib/completion/zsh/_docker debian/docker.io/usr/share/zsh/vendor-completions/_docker.io
+
+
+
+# the SHA1 of dockerinit is important: don't strip it
+# also, Go has lots of problems with stripping, so just don't
+override_dh_strip:
+
+
+override_dh_auto_test:
+
+
+override_dh_installman:
+	# we have to manually install because of the period in the name
+	mkdir -p debian/docker.io/usr/share/man/man1
+	cp debian/docker.io.1 debian/docker.io/usr/share/man/man1/
+
+
+override_dh_installchangelogs:
+	dh_installchangelogs CHANGELOG.md
+
+
+override_dh_installudev:
+	# use priority z80 to match the upstream priority of 80
+	dh_installudev --priority=z80
+
+
+%:
+	dh $@ --buildsystem=golang --with=golang,systemd,bash-completion
