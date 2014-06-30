@@ -6,9 +6,6 @@ export DH_GOPKG := github.com/dotcloud/docker
 # Tell dh-golang that we DO need subpackages
 export DH_GOLANG_INSTALL_ALL := 1
 
-# temporary build path (see http://golang.org/doc/code.html#GOPATH)
-export GOPATH := $(CURDIR)/obj-$(DEB_BUILD_GNU_TYPE)
-
 # a few helpful variables for deduplication
 INITDIR = /usr/lib/docker.io
 INITPATH = ${INITDIR}/dockerinit
@@ -23,7 +20,8 @@ export DOCKER_BUILDTAGS := apparmor
 
 override_dh_auto_build:
 	@bash -c '{ [ "$$DOCKER_GITCOMMIT" ]; } || { echo; echo "error: missing DOCKER_GITCOMMIT - see debian/upstream-version-gitcommits"; echo; exit 2; } >&2'
-	./hack/make.sh dynbinary
+	./hack/vendor.sh
+	AUTO_GOPATH=1 ./hack/make.sh dynbinary
 
 
 override_dh_auto_install:
