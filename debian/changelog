@@ -1,3 +1,12 @@
+docker.io (1.0.0~dfsg1-1+brew1) unstable; urgency=low
+
+  * debian/control: Use vendor go libs
+  * debian/rules: Use vendor go libs
+  * debian/patches/: Use-raw-setns-syscall-for-old-versions-of-glibc
+  * Remove debian/gbp.conf
+
+ -- Zhong Jianxin <azuwis@gmail.com>  Mon, 30 Jun 2014 11:47:13 +0800
+
 docker.io (1.0.0~dfsg1-1) unstable; urgency=medium
 
   * Updated to 1.0.0 upstream release. Huzzah!
