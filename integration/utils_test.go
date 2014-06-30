@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dotcloud/docker/vendor/src/code.google.com/p/go/src/pkg/archive/tar"
+	"archive/tar"
 
 	"github.com/dotcloud/docker/builtins"
 	"github.com/dotcloud/docker/daemon"

@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
+	"archive/tar"
 	"github.com/dotcloud/docker/pkg/system"
 	"github.com/dotcloud/docker/utils"
-	"github.com/dotcloud/docker/vendor/src/code.google.com/p/go/src/pkg/archive/tar"
 )
 
 type ChangeType int

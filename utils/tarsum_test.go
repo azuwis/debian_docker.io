@@ -1,10 +1,10 @@
 package utils
 
 import (
+	"archive/tar"
 	"bytes"
 	"crypto/rand"
 	"fmt"
-	"github.com/dotcloud/docker/vendor/src/code.google.com/p/go/src/pkg/archive/tar"
 	"io"
 	"io/ioutil"
 	"os"

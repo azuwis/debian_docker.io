@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"archive/tar"
 	"github.com/dotcloud/docker/api"
 	"github.com/dotcloud/docker/api/server"
 	"github.com/dotcloud/docker/daemon"
@@ -21,7 +22,6 @@ import (
 	"github.com/dotcloud/docker/image"
 	"github.com/dotcloud/docker/runconfig"
 	"github.com/dotcloud/docker/utils"
-	"github.com/dotcloud/docker/vendor/src/code.google.com/p/go/src/pkg/archive/tar"
 )
 
 func TestGetEvents(t *testing.T) {

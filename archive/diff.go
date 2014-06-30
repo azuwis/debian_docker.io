@@ -9,7 +9,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/dotcloud/docker/vendor/src/code.google.com/p/go/src/pkg/archive/tar"
+	"archive/tar"
 )
 
 // Linux device nodes are a bit weird due to backwards compat with 16 bit device nodes.
