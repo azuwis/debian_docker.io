@@ -1,3 +1,15 @@
+docker.io (1.2.0~dfsg1-1) unstable; urgency=medium
+
+  * Updated to 1.2.0 upstream release (Closes: #757183, #757023, #757024).
+  * Added upstream man pages.
+  * Updated bash and zsh completions to be installed as "docker" and "_docker".
+  * Updated init scripts to also be installed as "docker".
+  * Fixed "equivalent" typo in README.Debian (Closes: #756395). Thanks Reuben!
+  * Removed "docker.io" mention in README.Debian (Closes: #756290). Thanks
+    Olivier!
+
+ -- Tianon Gravi <admwiggin@gmail.com>  Sat, 13 Sep 2014 11:43:17 -0600
+
 docker.io (1.0.0~dfsg1-1) unstable; urgency=medium
 
   * Updated to 1.0.0 upstream release. Huzzah!

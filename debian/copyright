@@ -1,10 +1,10 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: Docker
-Upstream-Contact: Docker, Inc. <opensource@dotcloud.com>
-Source: https://github.com/dotcloud/docker
+Upstream-Contact: Docker, Inc. <support@docker.com>
+Source: https://github.com/docker/docker
 
 Files: *
-Copyright: 2012-2014, Docker, Inc. <opensource@dotcloud.com>
+Copyright: 2012-2014 Docker, Inc. <support@docker.com>
 License: Apache-2.0
 
 Files: debian/*
@@ -16,25 +16,21 @@ Copyright: 2013-2014 Daniel Mizyrycki <daniel@docker.com>
            2014 Prach Pongpanich <prachpub@gmail.com>
 License: Apache-2.0
 
-Files: hack/infrastructure/docker-ci/buildbot/github.py
-Copyright: Buildbot Team Members
-License: GPL-2
-
 Files: contrib/init/openrc/docker.initd
 Copyright: 1999-2013 Gentoo Foundation
 License: GPL-2
 
-Files: contrib/vim-syntax/*
+Files: contrib/syntax/vim/*
 Copyright: 2013 Honza Pokorny
 License: BSD-2-clause
 
 Files: pkg/mflag/*
 Copyright: 2014 The Docker & Go Authors
-License: BSD-3-clause (Google)
+License: BSD-3-clause-Google
 
 Files: contrib/completion/zsh/*
 Copyright: 2013-2014 Felix Riedel
-License: BSD-3-clause (Generic)
+License: BSD-3-clause-Generic
 
 License: Apache-2.0
  Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,7 +86,7 @@ License: BSD-2-clause
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-License: BSD-3-clause (Google)
+License: BSD-3-clause-Google
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are
  met:
@@ -117,7 +113,7 @@ License: BSD-3-clause (Google)
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-License: BSD-3-clause (Generic)
+License: BSD-3-clause-Generic
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
      * Redistributions of source code must retain the above copyright
