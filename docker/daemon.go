@@ -5,6 +5,7 @@ package main
 import (
 	"log"
 
+	"github.com/docker/docker/builder"
 	"github.com/docker/docker/builtins"
 	"github.com/docker/docker/daemon"
 	_ "github.com/docker/docker/daemon/execdriver/lxc"
@@ -13,6 +14,7 @@ import (
 	"github.com/docker/docker/engine"
 	flag "github.com/docker/docker/pkg/mflag"
 	"github.com/docker/docker/pkg/signal"
+	"github.com/docker/docker/registry"
 )
 
 const CanDaemon = true
@@ -32,8 +34,14 @@ func mainDaemon() {
 	}
 	eng := engine.New()
 	signal.Trap(eng.Shutdown)
+
 	// Load builtins
 	if err := builtins.Register(eng); err != nil {
+		log.Fatal(err)
+	}
+
+	// load registry service
+	if err := registry.NewService(daemonCfg.InsecureRegistries).Install(eng); err != nil {
 		log.Fatal(err)
 	}
 
@@ -48,6 +56,10 @@ func mainDaemon() {
 		if err := d.Install(eng); err != nil {
 			log.Fatal(err)
 		}
+
+		b := &builder.BuilderJob{eng, d}
+		b.Install()
+
 		// after the daemon is done setting up we can tell the api to start
 		// accepting connections
 		if err := eng.Job("acceptconnections").Run(); err != nil {

@@ -7,6 +7,7 @@ export DH_GOPKG := github.com/docker/docker
 export DH_GOLANG_INSTALL_ALL := 1
 
 LIBCONTAINER_GOPKG = github.com/docker/libcontainer
+LIBTRUST_GOPKG = github.com/docker/libtrust
 
 # temporary build path (see http://golang.org/doc/code.html#GOPATH)
 export GOPATH := $(CURDIR)/obj-$(DEB_BUILD_GNU_TYPE)
@@ -34,10 +35,12 @@ override_dh_auto_build:
 	
 	@# this is especially for easier build-testing of nightlies
 	@[ -d libcontainer ] || { [ -d vendor/src/$(LIBCONTAINER_GOPKG) ] && ln -sf vendor/src/$(LIBCONTAINER_GOPKG) libcontainer; }
+	@[ -d libtrust ] || { [ -d vendor/src/$(LIBTRUST_GOPKG) ] && ln -sf vendor/src/$(LIBTRUST_GOPKG) libtrust; }
 	
-	@# we need to make sure our multitarball libcontainer is in our GOPATH
-	@mkdir -p "$$GOPATH/src/$(dir $(LIBCONTAINER_GOPKG))"
+	@# we need to make sure our multitarball deps are in our GOPATH
+	@mkdir -p "$$GOPATH/src/$(dir $(LIBCONTAINER_GOPKG))" "$$GOPATH/src/$(dir $(LIBTRUST_GOPKG))"
 	ln -sf "$$(readlink -f libcontainer)" "$(GOPATH)/src/$(dir $(LIBCONTAINER_GOPKG))"
+	ln -sf "$$(readlink -f libtrust)" "$(GOPATH)/src/$(dir $(LIBTRUST_GOPKG))"
 	
 	./hack/make.sh dynbinary
 	
@@ -51,8 +54,6 @@ override_dh_auto_install:
 	# install docker binary
 	mkdir -p debian/docker.io/usr/bin
 	mv bundles/${DOCKER_VERSION}/dynbinary/docker-${DOCKER_VERSION} debian/docker.io/usr/bin/docker
-	# install docker.io symlink for easier transition
-	ln -s docker debian/docker.io/usr/bin/docker.io
 	
 	# install dockerinit binary
 	mkdir -p debian/docker.io/${INITDIR}
@@ -60,7 +61,6 @@ override_dh_auto_install:
 	
 	# Most of the source of docker does not make a library,
 	#   so only ship the reusable parts (and in a separate package).
-	# THIS WILL BE AN ACTUAL PACKAGE IN THE _NEXT_ VERSION.
 	mkdir -p debian/golang-docker-dev/usr/share/gocode/src/${DH_GOPKG}
 	mv -v \
 		debian/tmp/usr/share/gocode/src/${DH_GOPKG}/pkg \
@@ -85,6 +85,14 @@ override_dh_auto_test:
 override_dh_installinit:
 	dh_installinit --name=docker
 
+override_dh_systemd_enable:
+	dh_systemd_enable -pdocker.io --no-enable docker.service
+	dh_systemd_enable -pdocker.io docker.socket
+
+override_dh_systemd_start:
+	dh_systemd_start -pdocker.io --no-start docker.service
+	dh_systemd_start -pdocker.io docker.socket
+
 
 override_dh_installchangelogs:
 	dh_installchangelogs CHANGELOG.md
@@ -93,6 +101,12 @@ override_dh_installchangelogs:
 override_dh_installudev:
 	# use priority z80 to match the upstream priority of 80
 	dh_installudev --priority=z80
+
+
+override_dh_auto_clean:
+	# bundles is created by hack/make.sh
+	# docs/man/man*/ is created by docs/man/md2man-all.sh
+	rm -rf bundles docs/man/man*/
 
 
 %:

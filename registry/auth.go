@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"strings"
@@ -14,17 +15,29 @@ import (
 	"github.com/docker/docker/utils"
 )
 
-// Where we store the config file
-const CONFIGFILE = ".dockercfg"
+const (
+	// Where we store the config file
+	CONFIGFILE = ".dockercfg"
 
-// Only used for user auth + account creation
-const INDEXSERVER = "https://index.docker.io/v1/"
+	// Only used for user auth + account creation
+	INDEXSERVER    = "https://index.docker.io/v1/"
+	REGISTRYSERVER = "https://registry-1.docker.io/v1/"
 
-//const INDEXSERVER = "https://registry-stage.hub.docker.com/v1/"
+	// INDEXSERVER = "https://registry-stage.hub.docker.com/v1/"
+)
 
 var (
 	ErrConfigFileMissing = errors.New("The Auth config file is missing")
+	IndexServerURL       *url.URL
 )
+
+func init() {
+	url, err := url.Parse(INDEXSERVER)
+	if err != nil {
+		panic(err)
+	}
+	IndexServerURL = url
+}
 
 type AuthConfig struct {
 	Username      string `json:"username,omitempty"`

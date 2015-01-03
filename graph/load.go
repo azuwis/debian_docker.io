@@ -7,10 +7,12 @@ import (
 	"os"
 	"path"
 
-	"github.com/docker/docker/archive"
 	"github.com/docker/docker/engine"
 	"github.com/docker/docker/image"
+	"github.com/docker/docker/pkg/archive"
+	"github.com/docker/docker/pkg/chrootarchive"
 	"github.com/docker/docker/pkg/log"
+	"github.com/docker/docker/utils"
 )
 
 // Loads a set of images into the repository. This is the complementary of ImageExport.
@@ -53,7 +55,7 @@ func (s *TagStore) CmdLoad(job *engine.Job) engine.Status {
 		excludes[i] = k
 		i++
 	}
-	if err := archive.Untar(repoFile, repoDir, &archive.TarOptions{Excludes: excludes}); err != nil {
+	if err := chrootarchive.Untar(repoFile, repoDir, &archive.TarOptions{Excludes: excludes}); err != nil {
 		return job.Error(err)
 	}
 
@@ -111,6 +113,10 @@ func (s *TagStore) recursiveLoad(eng *engine.Engine, address, tmpImageDir string
 			log.Debugf("Error unmarshalling json", err)
 			return err
 		}
+		if err := utils.ValidateID(img.ID); err != nil {
+			log.Debugf("Error validating ID: %s", err)
+			return err
+		}
 		if img.Parent != "" {
 			if !s.graph.Exists(img.Parent) {
 				if err := s.recursiveLoad(eng, img.Parent, tmpImageDir); err != nil {
@@ -118,7 +124,7 @@ func (s *TagStore) recursiveLoad(eng *engine.Engine, address, tmpImageDir string
 				}
 			}
 		}
-		if err := s.graph.Register(imageJson, layer, img); err != nil {
+		if err := s.graph.Register(img, imageJson, layer); err != nil {
 			return err
 		}
 	}

@@ -2,9 +2,11 @@ package registry
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -19,8 +21,9 @@ import (
 )
 
 var (
-	testHttpServer *httptest.Server
-	testLayers     = map[string]map[string]string{
+	testHTTPServer     *httptest.Server
+	insecureRegistries []string
+	testLayers         = map[string]map[string]string{
 		"77dbf71da1d00e3fbddc480176eac8994025630c6590d11cfc8fe1209c2a1d20": {
 			"json": `{"id":"77dbf71da1d00e3fbddc480176eac8994025630c6590d11cfc8fe1209c2a1d20",
 				"comment":"test base image","created":"2013-03-23T12:53:11.10432-07:00",
@@ -79,10 +82,17 @@ var (
 			"latest": "42d718c941f5c532ac049bf0b0ab53f0062f09a03afd4aa4a02c098e46032b9d",
 		},
 	}
+	mockHosts = map[string][]net.IP{
+		"":            {net.ParseIP("0.0.0.0")},
+		"localhost":   {net.ParseIP("127.0.0.1"), net.ParseIP("::1")},
+		"example.com": {net.ParseIP("42.42.42.42")},
+	}
 )
 
 func init() {
 	r := mux.NewRouter()
+
+	// /v1/
 	r.HandleFunc("/v1/_ping", handlerGetPing).Methods("GET")
 	r.HandleFunc("/v1/images/{image_id:[^/]+}/{action:json|layer|ancestry}", handlerGetImage).Methods("GET")
 	r.HandleFunc("/v1/images/{image_id:[^/]+}/{action:json|layer|checksum}", handlerPutImage).Methods("PUT")
@@ -93,7 +103,35 @@ func init() {
 	r.HandleFunc("/v1/repositories/{repository:.+}{action:/images|/}", handlerImages).Methods("GET", "PUT", "DELETE")
 	r.HandleFunc("/v1/repositories/{repository:.+}/auth", handlerAuth).Methods("PUT")
 	r.HandleFunc("/v1/search", handlerSearch).Methods("GET")
-	testHttpServer = httptest.NewServer(handlerAccessLog(r))
+
+	// /v2/
+	r.HandleFunc("/v2/version", handlerGetPing).Methods("GET")
+
+	testHTTPServer = httptest.NewServer(handlerAccessLog(r))
+	URL, err := url.Parse(testHTTPServer.URL)
+	if err != nil {
+		panic(err)
+	}
+	insecureRegistries = []string{URL.Host}
+
+	// override net.LookupIP
+	lookupIP = func(host string) ([]net.IP, error) {
+		if host == "127.0.0.1" {
+			// I believe in future Go versions this will fail, so let's fix it later
+			return net.LookupIP(host)
+		}
+		for h, addrs := range mockHosts {
+			if host == h {
+				return addrs, nil
+			}
+			for _, addr := range addrs {
+				if addr.String() == host {
+					return []net.IP{addr}, nil
+				}
+			}
+		}
+		return nil, errors.New("lookup: no such host")
+	}
 }
 
 func handlerAccessLog(handler http.Handler) http.Handler {
@@ -105,7 +143,7 @@ func handlerAccessLog(handler http.Handler) http.Handler {
 }
 
 func makeURL(req string) string {
-	return testHttpServer.URL + req
+	return testHTTPServer.URL + req
 }
 
 func writeHeaders(w http.ResponseWriter) {
@@ -236,6 +274,7 @@ func handlerGetDeleteTags(w http.ResponseWriter, r *http.Request) {
 	tags, exists := testRepositories[repositoryName]
 	if !exists {
 		apiError(w, "Repository not found", 404)
+		return
 	}
 	if r.Method == "DELETE" {
 		delete(testRepositories, repositoryName)
@@ -255,10 +294,12 @@ func handlerGetTag(w http.ResponseWriter, r *http.Request) {
 	tags, exists := testRepositories[repositoryName]
 	if !exists {
 		apiError(w, "Repository not found", 404)
+		return
 	}
 	tag, exists := tags[tagName]
 	if !exists {
 		apiError(w, "Tag not found", 404)
+		return
 	}
 	writeResponse(w, tag, 200)
 }
@@ -292,7 +333,7 @@ func handlerUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func handlerImages(w http.ResponseWriter, r *http.Request) {
-	u, _ := url.Parse(testHttpServer.URL)
+	u, _ := url.Parse(testHTTPServer.URL)
 	w.Header().Add("X-Docker-Endpoints", fmt.Sprintf("%s 	,  %s ", u.Host, "test.example.com"))
 	w.Header().Add("X-Docker-Token", fmt.Sprintf("FAKE-SESSION-%d", time.Now().UnixNano()))
 	if r.Method == "PUT" {

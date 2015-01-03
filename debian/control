@@ -3,7 +3,6 @@ Section: admin
 Priority: optional
 Maintainer: Paul Tagliamonte <paultag@debian.org>
 Uploaders: Docker Packaging Team <docker-maint@lists.alioth.debian.org>,
-           Daniel Mizyrycki <daniel@docker.com>,
            Tianon Gravi <admwiggin@gmail.com>,
            Johan Euphrosine <proppy@google.com>
 Build-Depends: bash-completion,
@@ -26,7 +25,7 @@ Build-Depends: bash-completion,
                golang-pty-dev (>= 0.0~git20140315.1.67e2db2-1~),
                libapparmor-dev,
                libdevmapper-dev
-Standards-Version: 3.9.5
+Standards-Version: 3.9.6
 Homepage: https://github.com/docker/docker
 Vcs-Git: git://anonscm.debian.org/docker/docker.io.git
 Vcs-Browser: http://anonscm.debian.org/cgit/docker/docker.io.git
@@ -69,3 +68,12 @@ Suggests: docker.io
 Description: Docker container engine - Vim highlighting syntax files
  This package provides syntax files for the Vim editor for editing Dockerfiles
  from the Docker container engine.
+
+Package: golang-docker-dev
+Architecture: all
+Depends: ${misc:Depends}
+Built-Using: ${misc:Built-Using}
+Description: Externally reusable Go packages included with Docker
+ These packages are intentionally developed by upstream in such a way that they
+ are reusable to projects outside Docker and only rely on each other or other
+ external dependencies to be built.

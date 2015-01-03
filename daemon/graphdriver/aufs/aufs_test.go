@@ -4,17 +4,23 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/docker/docker/archive"
-	"github.com/docker/docker/daemon/graphdriver"
 	"io/ioutil"
 	"os"
 	"path"
 	"testing"
+
+	"github.com/docker/docker/daemon/graphdriver"
+	"github.com/docker/docker/pkg/archive"
+	"github.com/docker/docker/pkg/reexec"
 )
 
 var (
 	tmp = path.Join(os.TempDir(), "aufs-tests", "aufs")
 )
+
+func init() {
+	reexec.Init()
+}
 
 func testInit(dir string, t *testing.T) graphdriver.Driver {
 	d, err := Init(dir, nil)
@@ -330,7 +336,7 @@ func TestGetDiff(t *testing.T) {
 	}
 	f.Close()
 
-	a, err := d.Diff("1")
+	a, err := d.Diff("1", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -374,7 +380,7 @@ func TestChanges(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	changes, err := d.Changes("2")
+	changes, err := d.Changes("2", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -413,7 +419,7 @@ func TestChanges(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	changes, err = d.Changes("3")
+	changes, err = d.Changes("3", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -465,7 +471,7 @@ func TestDiffSize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	diffSize, err := d.DiffSize("1")
+	diffSize, err := d.DiffSize("1", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -507,7 +513,7 @@ func TestChildDiffSize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	diffSize, err := d.DiffSize("1")
+	diffSize, err := d.DiffSize("1", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -519,7 +525,7 @@ func TestChildDiffSize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	diffSize, err = d.DiffSize("2")
+	diffSize, err = d.DiffSize("2", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -602,7 +608,7 @@ func TestApplyDiff(t *testing.T) {
 	}
 	f.Close()
 
-	diff, err := d.Diff("1")
+	diff, err := d.Diff("1", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -614,7 +620,7 @@ func TestApplyDiff(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := d.ApplyDiff("3", diff); err != nil {
+	if err := d.applyDiff("3", diff); err != nil {
 		t.Fatal(err)
 	}
 
