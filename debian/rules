@@ -17,7 +17,7 @@ INITDIR = /usr/lib/docker.io
 INITPATH = ${INITDIR}/dockerinit
 DOCKER_VERSION = $(shell cat VERSION)
 
-export DOCKER_GITCOMMIT := $(shell ./debian/helpers/gitcommit.sh $(DOCKER_VERSION))
+export DOCKER_GITCOMMIT := $(shell ./debian/helpers/gitcommit.sh $(DOCKER_VERSION) $(DOCKER_VERSION))
 export DOCKER_INITPATH := ${INITPATH}
 
 # good old Ubuntu needs AppArmor
