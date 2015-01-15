@@ -32,6 +32,8 @@ override_dh_gencontrol:
 
 override_dh_auto_build:
 	@bash -c '{ [ "$$DOCKER_GITCOMMIT" ]; } || { echo; echo "error: missing DOCKER_GITCOMMIT - see debian/upstream-version-gitcommits"; echo; exit 2; } >&2'
+
+	./hack/vendor.sh
 	
 	@# this is especially for easier build-testing of nightlies
 	@[ -d libcontainer ] || { [ -d vendor/src/$(LIBCONTAINER_GOPKG) ] && ln -sf vendor/src/$(LIBCONTAINER_GOPKG) libcontainer; }
@@ -42,7 +44,7 @@ override_dh_auto_build:
 	ln -sf "$$(readlink -f libcontainer)" "$(GOPATH)/src/$(dir $(LIBCONTAINER_GOPKG))"
 	ln -sf "$$(readlink -f libtrust)" "$(GOPATH)/src/$(dir $(LIBTRUST_GOPKG))"
 	
-	./hack/make.sh dynbinary
+	AUTO_GOPATH=1 ./hack/make.sh dynbinary
 	
 	# compile man pages
 	./docs/man/md2man-all.sh
