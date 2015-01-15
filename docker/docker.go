@@ -13,14 +13,15 @@ import (
 	"github.com/docker/docker/api/client"
 	"github.com/docker/docker/dockerversion"
 	flag "github.com/docker/docker/pkg/mflag"
-	"github.com/docker/docker/reexec"
+	"github.com/docker/docker/pkg/reexec"
 	"github.com/docker/docker/utils"
 )
 
 const (
-	defaultCaFile   = "ca.pem"
-	defaultKeyFile  = "key.pem"
-	defaultCertFile = "cert.pem"
+	defaultTrustKeyFile = "key.json"
+	defaultCaFile       = "ca.pem"
+	defaultKeyFile      = "key.pem"
+	defaultCertFile     = "cert.pem"
 )
 
 func main() {
@@ -44,7 +45,8 @@ func main() {
 			// If we do not have a host, default to unix socket
 			defaultHost = fmt.Sprintf("unix://%s", api.DEFAULTUNIXSOCKET)
 		}
-		if _, err := api.ValidateHost(defaultHost); err != nil {
+		defaultHost, err := api.ValidateHost(defaultHost)
+		if err != nil {
 			log.Fatal(err)
 		}
 		flHosts = append(flHosts, defaultHost)
@@ -91,12 +93,14 @@ func main() {
 			}
 			tlsConfig.Certificates = []tls.Certificate{cert}
 		}
+		// Avoid fallback to SSL protocols < TLS1.0
+		tlsConfig.MinVersion = tls.VersionTLS10
 	}
 
 	if *flTls || *flTlsVerify {
-		cli = client.NewDockerCli(os.Stdin, os.Stdout, os.Stderr, protoAddrParts[0], protoAddrParts[1], &tlsConfig)
+		cli = client.NewDockerCli(os.Stdin, os.Stdout, os.Stderr, nil, protoAddrParts[0], protoAddrParts[1], &tlsConfig)
 	} else {
-		cli = client.NewDockerCli(os.Stdin, os.Stdout, os.Stderr, protoAddrParts[0], protoAddrParts[1], nil)
+		cli = client.NewDockerCli(os.Stdin, os.Stdout, os.Stderr, nil, protoAddrParts[0], protoAddrParts[1], nil)
 	}
 
 	if err := cli.Cmd(flag.Args()...); err != nil {

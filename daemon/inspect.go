@@ -31,7 +31,7 @@ func (daemon *Daemon) ContainerInspect(job *engine.Job) engine.Status {
 		out := &engine.Env{}
 		out.Set("Id", container.ID)
 		out.SetAuto("Created", container.Created)
-		out.Set("Path", container.Path)
+		out.SetJson("Path", container.Path)
 		out.SetList("Args", container.Args)
 		out.SetJson("Config", container.Config)
 		out.SetJson("State", container.State)
@@ -47,6 +47,7 @@ func (daemon *Daemon) ContainerInspect(job *engine.Job) engine.Status {
 		out.Set("ProcessLabel", container.ProcessLabel)
 		out.SetJson("Volumes", container.Volumes)
 		out.SetJson("VolumesRW", container.VolumesRW)
+		out.SetJson("AppArmorProfile", container.AppArmorProfile)
 
 		if children, err := daemon.Children(container.Name); err == nil {
 			for linkAlias, child := range children {
